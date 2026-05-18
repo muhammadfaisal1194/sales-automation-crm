@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+  leads        Lead[]
+  templates    EmailTemplate[]
+  googleToken  GoogleToken?
+}
+
+model Lead {
+  id            String     @id @default(cuid())
+  name          String
+  company       String
+  email         String
+  phone         String?
+  title         String?
+  source        String?
+  stage         String     @default("Prospecting")
+  score         Int?
+  scoreInsight  String?
+  value         Float      @default(0)
+  notes         String?
+  userId        String
+  user          User       @relation(fields: [userId], references: [id])
+  activities    Activity[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Activity {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id])
+  type      String
+  summary   String
+  createdAt DateTime @default(now())
+}
+
+model EmailTemplate {
+  id      String @id @default(cuid())
+  name    String
+  subject String
+  body    String
+  userId  String
+  user    User   @relation(fields: [userId], references: [id])
+}
+
+model GoogleToken {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id])
+  accessToken  String
+  refreshToken String
+  scope        String
+  expiresAt    DateTime
+}
